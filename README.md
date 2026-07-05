@@ -1,93 +1,53 @@
-# Docket — Document Generation Service
+<p align="center">
+  <h1 align="center">Docket</h1>
+  <p align="center"><strong>Document Generation Service</strong></p>
+  <p align="center">
+    Generate DOCX/PDF from versioned templates and dynamic JSON data.<br>
+    Convention-based template discovery — drop a file, it's live. No code changes.
+  </p>
+</p>
 
-Generates DOCX/PDF documents from versioned templates and dynamic JSON
-data. POC-scoped (no DB, no S3, no auth, no queues — everything lives on
-local disk), built as a modular monolith.
+<p align="center">
+  <img src="https://img.shields.io/badge/python-3.12%2B-blue?logo=python" alt="Python 3.12+">
+  <img src="https://img.shields.io/badge/FastAPI-0.115%2B-009688?logo=fastapi" alt="FastAPI">
+  <img src="https://img.shields.io/badge/Docker-ready-2496ED?logo=docker" alt="Docker">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT">
+  <img src="https://img.shields.io/badge/tests-36%20passing-brightgreen" alt="36 tests">
+</p>
 
-**Full documentation lives in [`/docs`](./docs/README.md):**
-- [`docs/architecture.md`](./docs/architecture.md) — module layout, component & sequence diagrams, extension points
-- [`docs/design-decisions.md`](./docs/design-decisions.md) — why the codebase looks the way it does, ADR-style
-- [`docs/production-readiness.md`](./docs/production-readiness.md) — how to turn this into a real deployed system (S3, Postgres, queues, auth, observability)
+---
 
-## Adding a new document type
+## ✨ Features
 
-No code changes required. Drop a template file into `templates/` named
-`{document_type}_v{version}.docx` (e.g. `credit_note_v1.docx`) —
-`FilesystemTemplateRepository` discovers it by convention. Multiple
-versions can coexist; the latest is used unless a specific `version` is
-requested. See [`docs/architecture.md`](./docs/architecture.md#extension-points-already-supported-zero-code-change)
-for details and `scripts/create_sample_templates.py` for a working
-docxtpl (Jinja2-in-DOCX) example, including the table row-loop syntax.
+- **Zero-code document types** — Drop `{type}_v{version}.docx` into `templates/` and it's immediately available via the API
+- **Legacy `.doc` support** — Old Word templates auto-convert to `.docx` via LibreOffice
+- **PDF output** — Seamless DOCX→PDF via LibreOffice (baked into the Docker image)
+- **Versioned templates** — Multiple versions coexist; latest is used unless a specific version is requested
+- **RESTful API** — Clean resource model (`documents`, `document-types`) with OpenAPI docs
+- **No database** — Metadata is encoded in filenames; everything lives on disk (swap out for S3/Postgres when you're ready)
+- **Docker-native** — Single `docker compose up` with LibreOffice included
 
-Legacy **`.doc`** templates work too — drop in `{type}_v{version}.doc`
-and it's converted to `.docx` via LibreOffice automatically before
-rendering (`templates/memo_v1.doc` is a working example; see
-[`docs/examples.md`](./docs/examples.md#memo-legacy-doc-template)).
-
-## Running
-
-### Option A: Docker Compose (includes LibreOffice — PDF conversion works out of the box)
+## 🚀 Quick start
 
 ```bash
+git clone https://github.com/yoosuf/docket.git
+cd docket
 docker compose up --build
 ```
 
-`templates/` and `generated/` are bind-mounted into the container, so
-dropping a new `{type}_v{N}.docx` into `templates/` on the host is picked
-up immediately, no rebuild needed. The image bakes in LibreOffice, so
-`"output_format": "pdf"` works without any host setup.
+Open **http://127.0.0.1:8000/docs** — interactive API docs are ready.
 
-### Option B: Local Python
+## 📄 Usage
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements-dev.txt
-
-# (Re)generate the sample templates shipped with this POC
-python scripts/create_sample_templates.py
-
-uvicorn app.main:app --reload
-```
-
-Either way, interactive docs are at `http://127.0.0.1:8000/docs`.
-
-### PDF conversion
-
-PDF output requires LibreOffice on PATH (`soffice`) — already included in
-the Docker image. For local (non-Docker) runs, install it separately;
-without it, requests with `"output_format": "pdf"` return `503
-ConversionUnavailableError` while DOCX generation is unaffected.
+### Try it in one command:
 
 ```bash
-# macOS
-brew install --cask libreoffice
-# Debian/Ubuntu
-apt-get install libreoffice
+./scripts/try_document.sh                     # invoice, docx
+./scripts/try_document.sh quote pdf           # quote, pdf
+./scripts/try_document.sh purchase_order pdf  # purchase_order, pdf
 ```
 
-## API
-
-RESTful resource model — `documents` is a collection you create into,
-read from, and delete by id; `document-types` is a separate, read-only
-resource. See [`docs/architecture.md`](./docs/architecture.md#api-surface-rest-resource-model)
-for the full design rationale.
-
-- `GET /health` — liveness check
-- `GET /api/v1/document-types` — supported document types + versions (derived from `templates/`)
-- `POST /api/v1/documents` — create (generate) a document
-- `GET /api/v1/documents` — list previously generated documents
-- `GET /api/v1/documents/{document_id}` — read one document's metadata
-- `GET /api/v1/documents/{document_id}/content` — fetch the actual file bytes
-- `DELETE /api/v1/documents/{document_id}` — delete a generated document
-
-### Try it immediately with mock data
-
-Ready-to-run sample payloads for all 5 shipped document types
-(`invoice`, `quote`, `purchase_order`, `contract`, `memo` — the last one
-sourced from a legacy `.doc` template) are in
-[`docs/examples/`](./docs/examples/) — no need to construct a request
-yourself:
+### Or via curl:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/documents \
@@ -95,30 +55,61 @@ curl -X POST http://127.0.0.1:8000/api/v1/documents \
   -d @docs/examples/invoice.json
 ```
 
-Or use the helper script, which works for any of the shipped types:
+### Adding a new document type:
 
-```bash
-./scripts/try_document.sh                      # invoice, docx (defaults)
-./scripts/try_document.sh quote                # quote, docx
-./scripts/try_document.sh purchase_order pdf   # purchase_order, pdf
-```
+1. Create a template (`docxtpl`-compatible `.docx` with Jinja2 placeholders)
+2. Name it `{type}_v{version}.docx` and drop it into `templates/`
+3. That's it — no code, no config, no restart
 
-See [`docs/examples.md`](./docs/examples.md) for all 5 samples, a
-field-reference table per document type, the full read/list/delete flow,
-and how to switch to `"output_format": "pdf"`.
+## 📚 Documentation
 
-## Testing
+| Document | What's inside |
+|---|---|
+| [`docs/architecture.md`](docs/architecture.md) | Module layout, component & sequence diagrams, extension points |
+| [`docs/design-decisions.md`](docs/design-decisions.md) | ADR-style rationale for key architectural choices |
+| [`docs/production-readiness.md`](docs/production-readiness.md) | Migration guide: local disk → S3, no DB → Postgres, sync → job queues |
+| [`docs/examples.md`](docs/examples.md) | Ready-to-run samples for all 5 shipped document types |
+
+## 🧪 Tests
 
 ```bash
 pytest
 ```
 
-Tests exercise the service against real (temp-dir) template/storage
-instances and the API via `TestClient` with a single dependency override
-(`get_document_service`) — no mocking of the DOCX rendering itself, so a
-broken template or a broken `docxtpl` integration would actually fail a
-test.
+36 tests exercising template resolution, service orchestration, REST endpoints, and rendering — no mocks on the DOCX layer.
 
-## License & changelog
+## 🏗 Architecture
 
-[MIT](./LICENSE). See [`CHANGELOG.md`](./CHANGELOG.md) for what's changed.
+Modular monolith — one domain (`documents`) in one folder:
+
+```
+app/
+├── main.py           # Composition root (FastAPI app)
+├── core/             # Config, errors, middleware
+└── modules/
+    └── documents/    # Router, service, repository, models
+```
+
+Full architecture docs at [`docs/architecture.md`](docs/architecture.md).
+
+## 📦 Shipped templates
+
+| Type | Template | Version |
+|---|---|---|
+| Invoice | `invoice_v1.docx` | 1 |
+| Quote | `quote_v1.docx` | 1 |
+| Purchase Order | `purchase_order_v1.docx` | 1 |
+| Contract | `contract_v1.docx` | 1 |
+| Memo | `memo_v1.doc` (legacy) | 1 |
+
+## 🛠 Tech stack
+
+[FastAPI](https://fastapi.tiangolo.com/) · [docxtpl](https://github.com/elapouya/python-docx-template) (Jinja2-in-DOCX) · [LibreOffice](https://www.libreoffice.org/) (PDF conversion) · [Docker](https://www.docker.com/) · [Pydantic](https://docs.pydantic.dev/) · [Uvicorn](https://www.uvicorn.org/)
+
+## 📜 License
+
+[MIT](LICENSE) © 2026 Yoosuf
+
+---
+
+> **Status:** POC — no production dependencies (no DB, no S3, no auth, no queues). Ready to evolve into a full document service — see the [production-readiness guide](docs/production-readiness.md).
