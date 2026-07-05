@@ -1,0 +1,18 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      # Bind-mount so dropping a new {type}_v{N}.docx template, or reading
+      # generated output, doesn't require rebuilding the image.
+      - ./templates:/app/templates
+      - ./generated:/app/generated
+    environment:
+      DOCKET_LIBREOFFICE_BINARY: soffice
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

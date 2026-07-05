@@ -1,0 +1,17 @@
+{
+  "document_type": "invoice",
+  "output_format": "docx",
+  "data": {
+    "invoice_number": "INV-1001",
+    "issue_date": "2026-07-04",
+    "due_date": "2026-07-18",
+    "customer_name": "Acme Corp",
+    "line_items": [
+      {"description": "Consulting Services", "quantity": 10, "unit_price": "150.00", "total": "1500.00"},
+      {"description": "Support Retainer", "quantity": 1, "unit_price": "400.00", "total": "400.00"}
+    ],
+    "subtotal": "1900.00",
+    "tax": "190.00",
+    "total_due": "2090.00"
+  }
+}

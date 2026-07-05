@@ -1,0 +1,15 @@
+{
+  "document_type": "purchase_order",
+  "output_format": "docx",
+  "data": {
+    "po_number": "PO-58210",
+    "order_date": "2026-07-04",
+    "vendor_name": "Global Supplies Ltd.",
+    "ship_to_address": "123 Warehouse Way, Springfield, IL 62704",
+    "line_items": [
+      {"description": "Office Chairs", "quantity": 20, "unit_price": "85.00", "total": "1700.00"},
+      {"description": "Standing Desks", "quantity": 10, "unit_price": "320.00", "total": "3200.00"}
+    ],
+    "order_total": "4900.00"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "document_type": "memo",
+  "output_format": "docx",
+  "data": {
+    "recipient": "All Staff",
+    "author": "Ada Lovelace",
+    "subject": "Legacy .doc template support",
+    "body": "This memo was rendered from a genuine legacy .doc template, converted to .docx by LibreOffice before Jinja2 data was applied."
+  }
+}

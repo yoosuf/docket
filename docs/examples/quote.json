@@ -1,0 +1,14 @@
+{
+  "document_type": "quote",
+  "output_format": "docx",
+  "data": {
+    "quote_number": "Q-2024-045",
+    "valid_until": "2026-08-01",
+    "customer_name": "Beta Industries",
+    "line_items": [
+      {"description": "Website Redesign", "quantity": 1, "unit_price": "8000.00", "total": "8000.00"},
+      {"description": "SEO Audit", "quantity": 1, "unit_price": "1200.00", "total": "1200.00"}
+    ],
+    "estimated_total": "9200.00"
+  }
+}

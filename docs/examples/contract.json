@@ -1,0 +1,12 @@
+{
+  "document_type": "contract",
+  "output_format": "docx",
+  "data": {
+    "contract_number": "C-2026-012",
+    "effective_date": "2026-07-04",
+    "party_a_name": "Acme Corp",
+    "party_b_name": "Beta LLC",
+    "terms_text": "Beta LLC agrees to provide consulting services to Acme Corp for a period of 12 months, commencing on the effective date above. Either party may terminate this agreement with 30 days written notice.",
+    "contract_value": "60000.00"
+  }
+}
